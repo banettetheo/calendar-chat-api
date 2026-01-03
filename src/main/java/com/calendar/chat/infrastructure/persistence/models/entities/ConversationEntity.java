@@ -1,7 +1,7 @@
-package com.calendar.chat.infrastructure.models.entities;
+package com.calendar.chat.infrastructure.persistence.models.entities;
 
+import com.calendar.chat.infrastructure.persistence.models.dtos.LastMessage;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -22,7 +22,7 @@ public class ConversationEntity {
     @Indexed
     private List<String> participantIds;
     
-    //private LastMessage lastMessage;
+    private LastMessage lastMessage;
     
     private LocalDateTime updatedAt;
 }
