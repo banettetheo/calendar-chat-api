@@ -1,9 +1,27 @@
 package com.calendar.chat.application.rest;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.calendar.chat.domain.models.Conversation;
+import com.calendar.chat.domain.services.ChatService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/conversations")
 public class ConversationController {
+
+    private final ChatService chatService;
+
+    public ConversationController(ChatService chatService) {
+        this.chatService = chatService;
+    }
+
+    @GetMapping
+    public Mono<ResponseEntity<Conversation>> getConversation(
+            @RequestHeader("X-Internal-User-Id") String userId,
+            @RequestParam String friendId) {
+        return chatService.readOrCreateConversation(List.of(userId, friendId)).map(ResponseEntity::ok);
+    }
 }
