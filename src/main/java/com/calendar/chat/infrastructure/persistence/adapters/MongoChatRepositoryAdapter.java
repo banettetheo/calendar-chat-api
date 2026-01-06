@@ -1,14 +1,17 @@
 package com.calendar.chat.infrastructure.persistence.adapters;
 
-import com.calendar.chat.domain.models.Conversation;
+import com.calendar.chat.domain.models.ConversationDetail;
+import com.calendar.chat.domain.models.ConversationSummary;
 import com.calendar.chat.domain.ports.ChatRepository;
 import com.calendar.chat.infrastructure.persistence.mappers.ConversationMapper;
 import com.calendar.chat.infrastructure.persistence.models.entities.ConversationEntity;
+import com.calendar.chat.infrastructure.persistence.models.entities.MessageBucketEntity;
 import com.calendar.chat.infrastructure.persistence.repositories.ConversationRepository;
 import com.calendar.chat.infrastructure.persistence.repositories.MessageBucketRepository;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -24,13 +27,38 @@ public class MongoChatRepositoryAdapter implements ChatRepository {
         this.conversationMapper = conversationMapper;
     }
 
-    public Mono<Conversation> save(Conversation conversation) {
-        return conversationRepository.save(conversationMapper.toConversationEntity(conversation))
-                .map(conversationMapper::toConversation);
+    public Mono<ConversationDetail> saveWithInitialBucket(List<String> participantIds) {
+
+        ConversationEntity conversationEntityToSave = new ConversationEntity(null, participantIds, null, null);
+
+        return conversationRepository.save(conversationEntityToSave)
+                .flatMap(conversationEntity -> {
+                    MessageBucketEntity messageBucketEntityToSave = new MessageBucketEntity(
+                            null,
+                            conversationEntity.getId(),
+                            0,
+                            new ArrayList<>(),
+                            false
+                    );
+
+                    ConversationDetail conversationDetail = conversationMapper.toConversationDetail(conversationEntity);
+
+                    return messageBucketRepository.save(messageBucketEntityToSave)
+                            .flatMap(messageBucketEntity -> {
+
+                                conversationDetail.setMessages(messageBucketEntity.getMessages().stream().map(conversationMapper::toMessage).toList());
+
+                                return Mono.just(conversationDetail);
+                            });
+                });
     }
 
-    public Mono<Conversation> findByParticipantIds(List<String> participantIds) {
+    public Mono<ConversationDetail> findByParticipantIds(List<String> participantIds) {
         return conversationRepository.findByParticipantIds(participantIds)
-                .map(conversationMapper::toConversation);
+                .map(conversationMapper::toConversationDetail);
     }
+
+//    public Flux<ConversationSummary> findConversationByUserId(String userId) {
+//        return conversationRepository.fin(userId)
+//    }
 }

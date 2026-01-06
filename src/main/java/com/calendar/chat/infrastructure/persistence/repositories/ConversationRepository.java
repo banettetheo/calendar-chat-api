@@ -11,4 +11,6 @@ import java.util.List;
 public interface ConversationRepository extends ReactiveMongoRepository<ConversationEntity, String> {
 
     Mono<ConversationEntity> findByParticipantIds(List<String> participantIds);
+
+    Mono<ConversationEntity> findByParticipantIdsContaining(String userId);
 }

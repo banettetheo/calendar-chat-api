@@ -1,9 +1,11 @@
 package com.calendar.chat.application.rest;
 
-import com.calendar.chat.domain.models.Conversation;
+import com.calendar.chat.domain.models.ConversationDetail;
+import com.calendar.chat.domain.models.ConversationSummary;
 import com.calendar.chat.domain.services.ChatService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -19,9 +21,16 @@ public class ConversationController {
     }
 
     @GetMapping
-    public Mono<ResponseEntity<Conversation>> getConversation(
+    public Mono<ResponseEntity<ConversationDetail>> getConversation(
             @RequestHeader("X-Internal-User-Id") String userId,
             @RequestParam String friendId) {
         return chatService.readOrCreateConversation(List.of(userId, friendId)).map(ResponseEntity::ok);
+    }
+
+    @GetMapping("all")
+    public ResponseEntity<Flux<ConversationSummary>> getConversations(
+            @RequestHeader("X-Internal-User-Id") String userId
+    ) {
+        return null;
     }
 }

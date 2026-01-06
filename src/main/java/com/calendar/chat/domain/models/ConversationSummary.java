@@ -3,7 +3,7 @@ package com.calendar.chat.domain.models;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record Conversation(
+public record ConversationSummary(
     String id,
     List<String> participantIds,
     ConversationType type,
