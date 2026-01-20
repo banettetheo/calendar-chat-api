@@ -6,8 +6,7 @@ import java.util.Map;
 public record Message(
         String id,
         String senderId,
+        String receiverId,
         String content,
-        MessageType type, // TEXT, IMAGE, VIDEO, etc.
-        LocalDateTime timestamp,
-        Map<String, Integer> reactions
+        LocalDateTime timestamp
 ) {}

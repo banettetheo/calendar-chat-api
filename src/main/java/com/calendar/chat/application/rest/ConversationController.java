@@ -4,6 +4,8 @@ import com.calendar.chat.domain.models.ConversationDetail;
 import com.calendar.chat.domain.models.ConversationSummary;
 import com.calendar.chat.domain.services.ChatService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,8 +24,10 @@ public class ConversationController {
 
     @GetMapping
     public Mono<ResponseEntity<ConversationDetail>> getConversation(
-            @RequestHeader("X-Internal-User-Id") String userId,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam String friendId) {
+        String userId = jwt.getClaimAsString("businessId");
+
         return chatService.readOrCreateConversation(List.of(userId, friendId)).map(ResponseEntity::ok);
     }
 
