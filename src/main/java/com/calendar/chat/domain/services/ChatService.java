@@ -2,14 +2,18 @@ package com.calendar.chat.domain.services;
 
 import com.calendar.chat.domain.models.ConversationDetail;
 import com.calendar.chat.domain.models.ConversationSummary;
+import com.calendar.chat.domain.models.Message;
 import com.calendar.chat.domain.ports.ChatRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.util.List;
 
 public class ChatService {
 
     private final ChatRepository chatRepository;
+    private final Sinks.Many<Message> sink = Sinks.many().multicast().directBestEffort();
 
     public ChatService(ChatRepository chatRepository) {
         this.chatRepository = chatRepository;
@@ -20,5 +24,18 @@ public class ChatService {
                 .switchIfEmpty(Mono.defer(() -> {
                     return chatRepository.saveWithInitialBucket(participantIds);
                 }));
+    }
+
+    // todo : gestion des erreurs
+    public Mono<Void> sendMessage(Message message) {
+        return Mono.fromCallable(() -> {
+            sink.tryEmitNext(message);
+            return null;
+        });
+    }
+
+    public Flux<Message> streamMessages(String userId) {
+        return sink.asFlux()
+                .filter(msg -> msg.receiverId().equals(userId));
     }
 }

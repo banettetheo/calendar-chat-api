@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 public record ChatInputDTO(
+        String senderUsername,
         String receiverId,
+        String conversationId,
         String content
 ) {}
