@@ -9,6 +9,7 @@ import com.calendar.chat.infrastructure.persistence.models.entities.MessageBucke
 import com.calendar.chat.infrastructure.persistence.repositories.ConversationRepository;
 import com.calendar.chat.infrastructure.persistence.repositories.MessageBucketRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class MongoChatRepositoryAdapter implements ChatRepository {
         this.conversationMapper = conversationMapper;
     }
 
+    @Transactional
     public Mono<ConversationDetail> saveWithInitialBucket(List<String> participantIds) {
 
         ConversationEntity conversationEntityToSave = new ConversationEntity(null, participantIds, null, null);
