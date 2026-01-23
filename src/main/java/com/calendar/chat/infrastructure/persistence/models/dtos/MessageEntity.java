@@ -8,9 +8,10 @@ import java.util.Map;
 public record MessageEntity(
         @Field("m_id") String messageId,
         @Field("s_id") String senderId,
+        @Field("s_un") String senderName,
         @Field("txt") String content,
-        @Field("t") String type,
-        @Field("ts") LocalDateTime timestamp,
-        Map<String, Integer> reactions,
-        AttachmentEntity attachment
+        // @Field("t") String type,
+        @Field("ts") LocalDateTime timestamp
+        // Map<String, Integer> reactions,
+        // AttachmentEntity attachment
 ) {}

@@ -9,4 +9,6 @@ import reactor.core.publisher.Mono;
 public interface MessageBucketRepository extends ReactiveMongoRepository<MessageBucketEntity, String> {
 
     Mono<MessageBucketEntity> findMessageBucketEntityByConversationIdAndBucketId(String conversationId, String bucketId);
+
+    Mono<MessageBucketEntity> findFirstByConversationId(String conversationId);
 }

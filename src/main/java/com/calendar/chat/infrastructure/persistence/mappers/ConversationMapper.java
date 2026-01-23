@@ -17,4 +17,6 @@ public interface ConversationMapper {
     ConversationDetail toConversationDetail(ConversationEntity conversationEntity);
 
     Message toMessage(MessageEntity messageEntity);
+
+    MessageEntity toMessageEntity(Message message);
 }

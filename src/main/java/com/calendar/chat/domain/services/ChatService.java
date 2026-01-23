@@ -28,10 +28,8 @@ public class ChatService {
 
     // todo : gestion des erreurs
     public Mono<Void> sendMessage(Message message) {
-        return Mono.fromCallable(() -> {
-            sink.tryEmitNext(message);
-            return null;
-        });
+        sink.tryEmitNext(message);
+        return chatRepository.postMessage(message);
     }
 
     public Flux<Message> streamMessages(String userId) {
