@@ -19,7 +19,6 @@ public class MessageBucketEntity {
     @Id
     private String id;
     private String conversationId;
-    private Integer bucketId;
+    private Integer bucketIndex;
     private List<MessageEntity> messages;
-    private Boolean isFull;
 }

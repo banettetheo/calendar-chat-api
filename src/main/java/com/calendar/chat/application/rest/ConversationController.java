@@ -2,6 +2,7 @@ package com.calendar.chat.application.rest;
 
 import com.calendar.chat.domain.models.ConversationDetail;
 import com.calendar.chat.domain.models.ConversationSummary;
+import com.calendar.chat.domain.models.MessageBucket;
 import com.calendar.chat.domain.services.ChatService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,10 +32,23 @@ public class ConversationController {
         return chatService.readOrCreateConversation(List.of(userId, friendId)).map(ResponseEntity::ok);
     }
 
+    @GetMapping("{conversationId}/loadMessages")
+    public Mono<ResponseEntity<MessageBucket>> readPreviousMessages(@PathVariable String conversationId,
+                                                                    @RequestParam Integer bucketIndex) {
+        return chatService.readPreviousMessages(conversationId, bucketIndex).map(ResponseEntity::ok);
+    }
+
+    @GetMapping("{conversationId}")
+    public Mono<ResponseEntity<ConversationDetail>> getConversationById(@PathVariable String conversationId) {
+        return chatService.readConversationById(conversationId).map(ResponseEntity::ok);
+    }
+
     @GetMapping("all")
     public ResponseEntity<Flux<ConversationSummary>> getConversations(
-            @RequestHeader("X-Internal-User-Id") String userId
+            @AuthenticationPrincipal Jwt jwt
     ) {
-        return null;
+
+        String userId = jwt.getClaimAsString("businessId");
+        return ResponseEntity.ok().body(chatService.readConversations(userId));
     }
 }

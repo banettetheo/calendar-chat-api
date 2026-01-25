@@ -3,6 +3,7 @@ package com.calendar.chat.infrastructure.persistence.adapters;
 import com.calendar.chat.domain.models.ConversationDetail;
 import com.calendar.chat.domain.models.ConversationSummary;
 import com.calendar.chat.domain.models.Message;
+import com.calendar.chat.domain.models.MessageBucket;
 import com.calendar.chat.domain.ports.ChatRepository;
 import com.calendar.chat.infrastructure.persistence.mappers.ConversationMapper;
 import com.calendar.chat.infrastructure.persistence.models.dtos.MessageEntity;
@@ -12,6 +13,7 @@ import com.calendar.chat.infrastructure.persistence.repositories.ConversationRep
 import com.calendar.chat.infrastructure.persistence.repositories.MessageBucketRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -42,8 +44,7 @@ public class MongoChatRepositoryAdapter implements ChatRepository {
                             null,
                             conversationEntity.getId(),
                             0,
-                            new ArrayList<>(),
-                            false
+                            new ArrayList<>()
                     );
 
                     ConversationDetail conversationDetail = conversationMapper.toConversationDetail(conversationEntity);
@@ -60,31 +61,66 @@ public class MongoChatRepositoryAdapter implements ChatRepository {
 
     public Mono<ConversationDetail> findByParticipantIds(List<String> participantIds) {
         return conversationRepository.findByParticipantIds(participantIds)
-                .flatMap(conversationEntity -> {
-                    ConversationDetail conversationDetail = conversationMapper.toConversationDetail(conversationEntity);
-
-                    return messageBucketRepository.findFirstByConversationId(conversationEntity.getId())
-                            .flatMap(messageBucketEntity -> {
-                                List<Message> messageList = messageBucketEntity.getMessages().stream().map(conversationMapper::toMessage).toList();
-
-                                conversationDetail.setMessages(messageList);
-
-                                return Mono.just(conversationDetail);
-                            });
-                });
+                .flatMap(this::loadConversationWithMessages);
     }
+
+    public Mono<ConversationDetail> findById(String conversationId) {
+        return conversationRepository.findById(conversationId)
+                .flatMap(this::loadConversationWithMessages);
+    }
+
+    private Mono<ConversationDetail> loadConversationWithMessages(ConversationEntity conversationEntity) {
+        return messageBucketRepository.findFirstByConversationIdOrderByBucketIndexDesc(conversationEntity.getId())
+                .map(bucket -> buildConversationDetail(conversationEntity, bucket));
+    }
+
+    private ConversationDetail buildConversationDetail(ConversationEntity conversationEntity, MessageBucketEntity messageBucketEntity) {
+        ConversationDetail conversationDetail = conversationMapper.toConversationDetail(conversationEntity);
+
+        List<Message> messages = messageBucketEntity.getMessages().stream()
+                .map(conversationMapper::toMessage)
+                .toList();
+
+        conversationDetail.setMessages(messages);
+        conversationDetail.setBucketIndex(messageBucketEntity.getBucketIndex());
+
+        return conversationDetail;
+    }
+
 
     public Mono<Void> postMessage(Message message) {
-        MessageEntity messageEntity = conversationMapper.toMessageEntity(message);
 
-        return messageBucketRepository.findFirstByConversationId(message.conversationId())
-                .flatMap(messageBucketEntity -> {
-                    messageBucketEntity.getMessages().add(messageEntity);
-                    return messageBucketRepository.save(messageBucketEntity).then();
+        return conversationRepository.findById(message.conversationId())
+                .flatMap(conversationEntity -> {
+                    MessageEntity messageEntity = conversationMapper.toMessageEntity(message);
+                    conversationEntity.setLastMessage(messageEntity);
+
+                    return messageBucketRepository.findFirstByConversationIdOrderByBucketIndexDesc(message.conversationId())
+                            .flatMap(messageBucketEntity -> {
+                                if (messageBucketEntity.getMessages().size() < 50) {
+                                    messageBucketEntity.getMessages().add(messageEntity);
+                                    return messageBucketRepository.save(messageBucketEntity);
+                                } else {
+
+                                    MessageBucketEntity messageBucketEntityToSave = new MessageBucketEntity(
+                                            null,
+                                            messageBucketEntity.getConversationId(),
+                                            messageBucketEntity.getBucketIndex() + 1,
+                                            List.of(messageEntity)
+                                    );
+                                    
+                                    return messageBucketRepository.save(messageBucketEntityToSave);
+                                }
+                            }).then(conversationRepository.save(conversationEntity)).then();
                 });
     }
 
-//    public Flux<ConversationSummary> findConversationByUserId(String userId) {
-//        return conversationRepository.fin(userId)
-//    }
+    public Mono<MessageBucket> findBucketByConversationIdAndBucketIndex(String conversationId, Integer bucketIndex) {
+        return messageBucketRepository.findByConversationIdAndBucketIndex(conversationId, bucketIndex)
+                .map(conversationMapper::toMessageBucket);
+    }
+
+    public Flux<ConversationSummary> findUserConversations(String userId) {
+        return conversationRepository.findByParticipantIdsContaining(userId).map(conversationMapper::toConversationSummary);
+    }
 }

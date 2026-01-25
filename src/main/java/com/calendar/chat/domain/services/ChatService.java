@@ -3,6 +3,7 @@ package com.calendar.chat.domain.services;
 import com.calendar.chat.domain.models.ConversationDetail;
 import com.calendar.chat.domain.models.ConversationSummary;
 import com.calendar.chat.domain.models.Message;
+import com.calendar.chat.domain.models.MessageBucket;
 import com.calendar.chat.domain.ports.ChatRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -35,5 +36,17 @@ public class ChatService {
     public Flux<Message> streamMessages(String userId) {
         return sink.asFlux()
                 .filter(msg -> msg.receiverId().equals(userId));
+    }
+
+    public Mono<MessageBucket> readPreviousMessages(String conversationId, Integer bucketIndex) {
+        return chatRepository.findBucketByConversationIdAndBucketIndex(conversationId, bucketIndex);
+    }
+
+    public Mono<ConversationDetail> readConversationById(String conversationId) {
+        return chatRepository.findById(conversationId);
+    }
+
+    public Flux<ConversationSummary> readConversations(String userId) {
+        return chatRepository.findUserConversations(userId);
     }
 }

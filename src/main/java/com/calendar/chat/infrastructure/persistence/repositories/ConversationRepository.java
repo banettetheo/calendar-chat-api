@@ -4,6 +4,7 @@ import com.calendar.chat.infrastructure.persistence.models.entities.Conversation
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -14,5 +15,5 @@ public interface ConversationRepository extends ReactiveMongoRepository<Conversa
     @Query("{ 'participantIds': { $all: ?0 } }")
     Mono<ConversationEntity> findByParticipantIds(List<String> participantIds);
 
-    Mono<ConversationEntity> findByParticipantIdsContaining(String userId);
+    Flux<ConversationEntity> findByParticipantIdsContaining(String userId);
 }

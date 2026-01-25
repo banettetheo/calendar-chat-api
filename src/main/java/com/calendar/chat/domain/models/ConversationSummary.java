@@ -5,13 +5,8 @@ import java.util.List;
 
 public record ConversationSummary(
     String id,
-    List<String> participantIds,
     ConversationType type,
+    String title,
     LocalDateTime updatedAt,
-    Message lastMessage,
-    boolean isFull
-) {
-    public boolean hasParticipant(String userId) {
-        return participantIds.contains(userId);
-    }
-}
+    Message lastMessage
+) { }

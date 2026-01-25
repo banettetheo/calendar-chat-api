@@ -14,5 +14,5 @@ public class ConversationDetail {
     private List<String> participantIds;
     private ConversationType type;
     private List<Message> messages;
-    private Boolean hasMoreMessages;
+    private Integer bucketIndex;
 }
