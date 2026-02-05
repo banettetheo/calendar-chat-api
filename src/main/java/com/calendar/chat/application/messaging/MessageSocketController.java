@@ -3,15 +3,12 @@ package com.calendar.chat.application.messaging;
 import com.calendar.chat.application.dtos.ChatInputDTO;
 import com.calendar.chat.domain.models.Message;
 import com.calendar.chat.domain.services.ChatService;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
 
