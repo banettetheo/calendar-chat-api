@@ -1,14 +1,14 @@
-name: Build
+name: CI Main
+
 on:
   push:
     branches:
       - main
-      - dev
   pull_request:
     branches:
       - main
-      - dev
     types: [opened, synchronize, reopened]
+
 jobs:
   build:
     name: Build and analyze
@@ -16,8 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      
+          fetch-depth: 0
+
       - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
@@ -39,34 +39,11 @@ jobs:
           chmod +x mvnw
           ./mvnw -B clean verify sonar:sonar \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.branch.name=${{ github.event.pull_request.head.ref || github.ref_name }} \
+            -Dsonar.branch.name=${{ github.ref_name }} \
             -Dsonar.qualitygate.wait=true
-
-  push-dev:
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push (dev)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/wely-chat:sha-${{ github.sha }}
 
   release:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -76,6 +53,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Get lowercase owner
+        id: lower
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -92,13 +72,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push (prod)
+      - name: Build and push
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/wely-chat:latest
-            ghcr.io/${{ github.repository_owner }}/wely-chat:${{ steps.semantic.outputs.new_release_version }}
-
+            ghcr.io/${{ steps.lower.outputs.owner }}/wely-chat:latest
+            ghcr.io/${{ steps.lower.outputs.owner }}/wely-chat:${{ steps.semantic.outputs.new_release_version }}
