@@ -22,9 +22,7 @@ public class ChatService {
 
     public Mono<ConversationDetail> readOrCreateConversation(List<String> participantIds) {
         return chatRepository.findByParticipantIds(participantIds)
-                .switchIfEmpty(Mono.defer(() -> {
-                    return chatRepository.saveWithInitialBucket(participantIds);
-                }));
+                .switchIfEmpty(Mono.defer(() -> chatRepository.saveWithInitialBucket(participantIds)));
     }
 
     // todo : gestion des erreurs

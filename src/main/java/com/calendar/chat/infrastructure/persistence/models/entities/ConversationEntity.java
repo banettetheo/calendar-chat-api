@@ -1,5 +1,6 @@
 package com.calendar.chat.infrastructure.persistence.models.entities;
 
+import com.calendar.chat.domain.models.ConversationType;
 import com.calendar.chat.infrastructure.persistence.models.dtos.MessageEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,10 @@ import java.util.List;
 public class ConversationEntity {
     @Id
     private String id;
+
+    private String title;
+
+    private ConversationType type;
     
     @Indexed
     private List<String> participantIds;
