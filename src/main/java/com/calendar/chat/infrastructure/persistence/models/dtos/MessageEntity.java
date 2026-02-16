@@ -1,17 +1,32 @@
 package com.calendar.chat.infrastructure.persistence.models.dtos;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
-public record MessageEntity(
-        @Field("m_id") String messageId,
-        @Field("s_id") String senderId,
-        @Field("s_un") String senderName,
-        @Field("txt") String content,
-        // @Field("t") String type,
-        @Field("ts") LocalDateTime timestamp
-        // Map<String, Integer> reactions,
-        // AttachmentEntity attachment
-) {}
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class MessageEntity {
+        @Field("m_id")
+        @Builder.Default
+        private ObjectId id = new ObjectId();
+
+        @Field("s_id")
+        private String senderId;
+
+        @Field("s_un")
+        private String senderName;
+
+        @Field("txt")
+        private String content;
+
+        @Field("ts")
+        private LocalDateTime timestamp;
+}
