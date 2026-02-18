@@ -26,7 +26,8 @@ public class MessageSocketController {
         String userId = jwt.getClaimAsString("businessId");
         String username = jwt.getClaimAsString("preferred_username");
 
-        Message message = new Message(null, userId, username, chatInputDTO.receiverId(), chatInputDTO.conversationId(), chatInputDTO.content(), LocalDateTime.now());
+        Message message = new Message(null, userId, username, chatInputDTO.receiverId(),
+                chatInputDTO.conversationId(), chatInputDTO.content(), LocalDateTime.now());
         return chatService.sendMessage(message);
     }
 

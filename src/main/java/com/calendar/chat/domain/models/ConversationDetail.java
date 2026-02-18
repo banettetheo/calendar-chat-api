@@ -12,6 +12,7 @@ import java.util.List;
 public class ConversationDetail {
     private String id;
     private List<String> participantIds;
+    private String title;
     private ConversationType type;
     private List<Message> messages;
     private Integer bucketIndex;

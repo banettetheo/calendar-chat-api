@@ -36,7 +36,7 @@ public class MongoChatRepositoryAdapter implements ChatRepository {
     @Transactional
     public Mono<ConversationDetail> saveWithInitialBucket(List<String> participantIds) {
 
-        ConversationEntity conversationEntityToSave = new ConversationEntity(null, participantIds, null, null);
+        ConversationEntity conversationEntityToSave = new ConversationEntity(null, null, null, participantIds, null, null);
 
         return conversationRepository.save(conversationEntityToSave)
                 .flatMap(conversationEntity -> {
